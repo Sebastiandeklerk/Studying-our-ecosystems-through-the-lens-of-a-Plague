@@ -1,0 +1,383 @@
+---
+title: "SFI Project"
+author: "Sebastian de Klerk (DKLSEB001)"
+date: "2024-04-06"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning = FALSE}
+file_path <- "C:/Users/user/OneDrive/Documents/Santa Fe/Project/landings_seba_de_klerk/landings_seba_de_klerk/20240404_Landings_17-23.csv"
+
+# Read the file
+data <- read.csv(file_path)
+library(ggplot2)
+```
+
+```{r, fig.cap="Percentage Change in Summed Weight of Fish Caught by Vessels"}
+# Sample data generation (Replace this with your actual data)
+date <- data$Date
+summed_weight <- data$SumWeight_Kg
+
+# Creating a data frame
+df <- data.frame(date, summed_weight)
+
+df$date <- as.Date(df$date)
+
+# Extract year from the 'date' column and add it as a new column 'year'
+df$year <- as.integer(format(df$date, "%Y"))
+
+# Calculating the percentage change in summed weight
+yearly_summary <- aggregate(summed_weight ~ year, df, sum)
+yearly_summary$percentage_change <- c(0, diff(yearly_summary$summed_weight) / yearly_summary$summed_weight[-nrow(yearly_summary)])
+```
+
+
+```{r, fig.cap="Percentage Change in Summed Weight of Fish Caught by Vessels"}
+# Plotting the line graph
+yearly_summary1 = yearly_summary
+yearly_summary1[, "percentage_change"] = yearly_summary[, "percentage_change"] + 1
+
+
+ggplot(yearly_summary1, aes(x = year, y = percentage_change)) +
+  geom_line(pch = 19, lwd = 1, col = "maroon") +
+  geom_point() +
+  labs(title = "", x = "Year", y = "% Biomass Change") +
+  scale_x_continuous(breaks = seq(min(yearly_summary1$year), max(yearly_summary1$year), by = 1)) + # Adjust x-axis breaks
+  coord_cartesian(ylim = c(0.5, 1.5)) +
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    axis.line = element_line(color = "black"),
+    panel.grid.major = element_line(color = "gray", size = 0.2), # Adjust grid color and size
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14, face = "bold"),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.background = element_rect(fill = "lightblue"), # Set background color
+    panel.background = element_rect(fill = "white") # Set panel background color
+  )
+```
+
+```{r}
+# Sample data generation (Replace this with your actual data)
+date <- data$Date
+summed_weight <- data$SumWeight_Kg
+
+# Creating a data frame
+df <- data.frame(date, summed_weight)
+
+# Make sure 'date' column is in Date format
+df$date <- as.Date(df$date)
+
+# Adding year and month columns
+df$year <- as.integer(format(df$date, "%Y"))
+df$month <- as.integer(format(df$date, "%m"))
+
+# Calculating the percentage change in summed weight for each year and month
+monthly_summary <- aggregate(summed_weight ~ year + month, df, sum)
+monthly_summary$percentage_change <- c(0, diff(monthly_summary$summed_weight) / monthly_summary$summed_weight[-1])
+```
+
+
+```{r}
+# Plotting the line graph for 2017-2020
+ggplot(subset(monthly_summary, year >= 2017 & year <= 2020), aes(x = month, y = percentage_change)) +
+  geom_line(pch = 2, lwd = 1) +
+  geom_point() +
+  labs(title = "2017-2020",
+       x = "Month",
+       y = "% Biomass Change") +
+  coord_cartesian(ylim = c(-2, 1)) +
+  theme_minimal()
+
+# Plotting the line graph for 2020-2024
+ggplot(subset(monthly_summary, year >= 2020 & year <= 2024), aes(x = month, y = percentage_change)) +
+  geom_line(pch = 2, lwd = 1) +
+  geom_point() +
+  labs(title = "2020-2024",
+       x = "Month",
+       y = "% Biomass Change") +
+  coord_cartesian(ylim = c(-2, 1)) +
+  theme_minimal()
+
+# Plotting the line graph for 2017-2020 and 2020-2024
+ggplot(monthly_summary, aes(x = month, y = percentage_change, color = factor(year >= 2020))) +
+  geom_line(pch = 2, lwd = 1) +
+  geom_point() +
+  labs(title = "Biomass Change Over Time",
+       x = "Month",
+       y = "% Biomass Change",
+       color = "Year") +
+  scale_color_manual(values = c("blue", "red"), labels = c("2017-2020", "2020-2024")) +  # Set colors and labels for the legend
+  coord_cartesian(ylim = c(-2, 1)) +
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    axis.line = element_line(color = "black"),
+    panel.grid.major = element_line(color = "gray", size = 0.2), # Adjust grid color and size
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14, face = "bold"),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.background = element_rect(fill = "lightblue"), # Set background color
+    panel.background = element_rect(fill = "white") # Set panel background color
+  )
+
+```
+
+```{r}
+# Plotting each year as a separate line
+ggplot(monthly_summary, aes(x = month, y = percentage_change, color = factor(year))) +
+  geom_line(pch = 2, lwd = 1, aes(group = year)) + # Group by year
+  geom_point() +
+  labs(title = "Biomass Change Over Time",
+       x = "Month",
+       y = "% Biomass Change",
+       color = "Year") +
+  coord_cartesian(ylim = c(-2, 1)) +
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    axis.line = element_line(color = "black"),
+    panel.grid.major = element_line(color = "gray", size = 0.2), # Adjust grid color and size
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14, face = "bold"),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.background = element_rect(fill = "lightblue"), # Set background color
+    panel.background = element_rect(fill = "white") # Set panel background color
+  )
+
+```
+
+
+```{r}
+# Sample data generation (Replace this with your actual data)
+date <- data$Date
+summed_weight <- data$SumWeight_Kg
+
+# Creating a data frame
+df <- data.frame(date, summed_weight)
+
+# Make sure 'date' column is in Date format
+df$date <- as.Date(df$date)
+
+# Adding year and month columns
+df$year <- as.integer(format(df$date, "%Y"))
+df$month <- as.integer(format(df$date, "%m"))
+
+# Calculating the percentage change in summed weight for each year and month
+monthly_summary <- aggregate(summed_weight ~ year + month, df, sum)
+monthly_summary$percentage_change <- c(0, diff(monthly_summary$summed_weight) / monthly_summary$summed_weight[-1])
+
+# Plotting the line graph for 2017-2020
+p1 <- ggplot(subset(monthly_summary, year >= 2017 & year <= 2020), aes(x = month, y = percentage_change)) +
+  geom_line(pch = 2, lwd = 1) +
+  geom_point() +
+  labs(title = "2017-2020",
+       x = "Month",
+       y = "% Biomass Change") +
+  scale_x_continuous(breaks = seq(1, 12, by = 1)) +  # Ensure ticks for each month
+  coord_cartesian(ylim = c(-2, 1)) +
+  theme_minimal()
+
+# Plotting the line graph for 2020-2024
+p2 <- ggplot(subset(monthly_summary, year >= 2020 & year <= 2024), aes(x = month, y = percentage_change)) +
+  geom_line(pch = 2, lwd = 1) +
+  geom_point() +
+  labs(title = "2020-2024",
+       x = "Month",
+       y = "% Biomass Change") +
+  scale_x_continuous(breaks = seq(1, 12, by = 1)) +  # Ensure ticks for each month
+  coord_cartesian(ylim = c(-2, 1)) +
+  theme_minimal()
+
+# Displaying plots on separate axes
+library(gridExtra)
+grid.arrange(p1, p2, ncol = 1)
+
+```
+
+```{r}
+# Sample data generation (Replace this with your actual data)
+date <- data$Date
+summed_weight <- data$SumWeight_Kg
+
+# Creating a data frame
+df <- data.frame(date, summed_weight)
+
+# Make sure 'date' column is in Date format
+df$date <- as.Date(df$date)
+
+# Adding a column for the year and month
+df$year_month <- as.yearmon(df$date)
+
+# Grouping data into three-month intervals and calculating the average biomass for each interval
+monthly_summary <- aggregate(summed_weight ~ year_month, df, mean)
+
+# Plotting the line graph
+ggplot(monthly_summary, aes(x = as.Date(year_month), y = summed_weight)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Average Biomass Change (Three-Month Intervals)",
+       x = "Year",
+       y = "Average Biomass") +
+  theme_minimal()
+
+```
+
+```{r}
+# Load necessary packages
+library(zoo)
+library(ggplot2)
+
+# Sample data generation (Replace this with your actual data)
+date <- data$Date
+summed_weight <- data$SumWeight_Kg
+
+# Creating a data frame
+df <- data.frame(date, summed_weight)
+
+# Make sure 'date' column is in Date format
+df$date <- as.Date(df$date)
+
+# Adding a column for the year and month
+df$year_month <- as.yearmon(df$date)
+
+# Calculate three-month rolling averages
+monthly_summary <- aggregate(summed_weight ~ year_month, df, mean)
+monthly_summary$three_month_avg <- rollapplyr(monthly_summary$summed_weight, width = 3, FUN = mean, fill = NA)
+
+# Convert year_month back to Date format
+monthly_summary$date <- as.Date(as.yearmon(monthly_summary$year_month))
+
+# Aggregate three-month averages into monthly three-month values
+monthly_three_month_avg <- aggregate(three_month_avg ~ year_month, monthly_summary, mean)
+
+# Plotting the line graph
+ggplot(monthly_three_month_avg, aes(x = date, y = three_month_avg)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Average Biomass Change (Monthly Three-Month Averages)",
+       x = "Date",
+       y = "Average Biomass") +
+  theme_minimal()
+
+```
+
+```{r}
+# Load necessary packages
+library(zoo)
+library(ggplot2)
+
+# Sample data generation (Replace this with your actual data)
+date <- data$Date
+summed_weight <- data$SumWeight_Kg
+
+# Creating a data frame
+df <- data.frame(date, summed_weight)
+
+# Make sure 'date' column is in Date format
+df$date <- as.Date(df$date)
+
+# Adding a column for the year and month
+df$year_month <- as.yearmon(df$date)
+
+# Calculate three-month rolling averages
+monthly_summary <- aggregate(summed_weight ~ year_month, df, mean)
+monthly_summary$three_month_avg <- rollapplyr(monthly_summary$summed_weight, width = 3, FUN = mean, fill = NA)
+
+# Convert year_month back to Date format
+monthly_summary$date <- as.Date(as.yearmon(monthly_summary$year_month))
+
+# Remove NA values
+monthly_summary <- monthly_summary[complete.cases(monthly_summary), ]
+
+# Aggregate three-month averages into monthly three-month values
+monthly_three_month_avg <- aggregate(three_month_avg ~ year_month, monthly_summary, mean)
+
+# Extract year and month from the year_month variable
+monthly_three_month_avg$year <- as.integer(format(monthly_three_month_avg$date, "%Y"))
+monthly_three_month_avg$month <- as.integer(format(monthly_three_month_avg$date, "%m"))
+
+# Plotting the line graph
+ggplot(monthly_three_month_avg, aes(x = as.Date(paste(year, month, "01", sep = "-")), y = three_month_avg)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Average Biomass Change (Monthly Three-Month Averages)",
+       x = "Date",
+       y = "Average Biomass") +
+  theme_minimal()
+
+plot(monthly_three_month_avg$year_month ~ monthly_three_month_avg$three_month_avg)
+
+# Plotting the line graph
+ggplot(monthly_three_month_avg, aes(x = year_month, y = three_month_avg)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Average Biomass Change (Monthly Three-Month Averages)",
+       x = "Year-Month",
+       y = "Average Biomass") +
+  theme_minimal() +
+  scale_x_yearmon(format = "%Y-%b")
+
+```
+
+```{r}
+# Load necessary packages
+library(zoo)
+library(ggplot2)
+
+# Sample data generation (Replace this with your actual data)
+date <- data$Date
+summed_weight <- data$SumWeight_Kg
+
+# Creating a data frame
+df <- data.frame(date, summed_weight)
+
+# Make sure 'date' column is in Date format
+df$date <- as.Date(df$date)
+
+# Adding a column for the year and month
+df$year_month <- as.yearmon(df$date)
+
+# Calculate three-month rolling averages
+monthly_summary <- aggregate(summed_weight ~ year_month, df, mean)
+monthly_summary$three_month_avg <- rollapplyr(monthly_summary$summed_weight, width = 4, FUN = mean, fill = NA)
+
+# Convert year_month back to Date format
+monthly_summary$date <- as.Date(as.yearmon(monthly_summary$year_month))
+
+# Remove NA values
+monthly_summary <- na.omit(monthly_summary)
+
+# Aggregate three-month averages into monthly three-month values
+monthly_three_month_avg <- aggregate(three_month_avg ~ year_month, monthly_summary, mean)
+
+# Convert year_month column to POSIXlt format
+monthly_three_month_avg$year_month <- as.POSIXlt(monthly_three_month_avg$year_month)
+
+# Extract year and month
+monthly_three_month_avg$year <- monthly_three_month_avg$year_month$year + 1900
+monthly_three_month_avg$month <- monthly_three_month_avg$year_month$mon + 1
+
+# Create new_date column using year and month
+monthly_three_month_avg$new_date <- as.Date(paste(monthly_three_month_avg$year, monthly_three_month_avg$month, "01", sep = "-"))
+
+# Plotting the line graph
+ggplot(monthly_three_month_avg, aes(x = new_date, y = three_month_avg)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Average Biomass Change (Three-Month Averages)",
+       x = "Date",
+       y = "Average Biomass")
+
+
+```
+
